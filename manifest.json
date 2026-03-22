@@ -2,7 +2,7 @@
   "name": "PowerBuilding by Terry Hollands",
   "short_name": "PowerBuilding",
   "description": "12-week powerbuilding programme tracker",
-  "start_url": "./index.html",
+  "start_url": "/powerbuilding/index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d0d1a",
