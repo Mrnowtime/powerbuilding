@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PowerBuilding</title>
+<meta name="theme-color" content="#0d0d1a">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PowerBuilding">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d0d1a;--bg2:#1a1a2e;--bg3:#252540;--bg4:#2e2e50;
+  --red:#e63946;--red2:#c1121f;--gold:#ffd60a;
+  --text:#f0f0f8;--muted:#8888aa;--border:#2a2a48;
+  --green:#2dc653;--blue:#4a9eff;
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+  --safe-top:env(safe-area-inset-top, 0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top)}
+/* HEADER */
+#header{background:var(--bg2);padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-title{font-size:18px;font-weight:700;letter-spacing:.5px}
+.header-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.phase-badge{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px}
+/* SCREENS */
+#screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 80px}
+.screen.hidden{display:none}
+/* NAV */
+#nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:var(--safe-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:color .2s;gap:3px}
+.nav-btn svg{width:22px;height:22px}
+.nav-btn.active{color:var(--red)}
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.card-sub{font-size:12px;color:var(--muted)}
+/* HOME */
+.progress-ring-wrap{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.big-stat{text-align:center}
+.big-num{font-size:36px;font-weight:800;color:var(--red)}
+.big-label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.progress-bar{background:var(--bg3);border-radius:6px;height:8px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:6px;transition:width .5s}
+.session-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.session-tile{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all .2s;text-align:left}
+.session-tile:active{transform:scale(.97)}
+.session-tile.done{border-color:var(--green);background:rgba(45,198,83,.08)}
+.session-tile.current{border-color:var(--red);background:rgba(230,57,70,.08)}
+.tile-session{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.tile-focus{font-size:13px;font-weight:700}
+.tile-check{color:var(--green);font-size:16px;float:right}
+.big-btn{display:block;width:100%;background:var(--red);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;text-align:center;cursor:pointer;letter-spacing:.5px;margin:10px 0;transition:background .2s}
+.big-btn:active{background:var(--red2)}
+.big-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.big-btn.gold{background:var(--gold);color:#000}
+/* WEEK SELECTOR */
+.week-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none;margin-bottom:12px}
+.week-scroll::-webkit-scrollbar{display:none}
+.week-chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s}
+.week-chip.active{background:var(--red);border-color:var(--red);color:#fff}
+.week-chip.done{border-color:var(--green);color:var(--green)}
+/* SESSION VIEW */
+.session-header{margin-bottom:14px}
+.session-header h2{font-size:20px;font-weight:800}
+.session-header p{font-size:13px;color:var(--muted);margin-top:3px}
+.ex-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.ex-header{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;cursor:pointer;user-select:none}
+.ex-name{font-size:15px;font-weight:700;flex:1}
+.ex-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.ex-pct{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;margin-left:8px;flex-shrink:0}
+.ex-body{padding:0 14px 12px;border-top:1px solid var(--border)}
+.ex-notes{font-size:12px;color:var(--muted);padding:10px 0;line-height:1.5;border-bottom:1px solid var(--border);margin-bottom:8px}
+.rest-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--gold);font-weight:600;padding:3px 8px;background:rgba(255,214,10,.1);border-radius:8px;margin-bottom:8px}
+/* LOGGING TABLE */
+.log-table{width:100%;border-collapse:collapse}
+.log-table th{font-size:10px;color:var(--muted);font-weight:700;text-align:left;padding:4px 4px 6px;letter-spacing:.5px}
+.log-table td{padding:4px}
+.log-table .set-num{font-size:12px;font-weight:700;color:var(--muted);text-align:center;width:28px}
+.log-table .set-target{font-size:12px;color:var(--muted);width:60px}
+.num-input{width:64px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 6px;color:var(--text);font-size:14px;font-weight:600;text-align:center;-moz-appearance:textfield}
+.num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.num-input:focus{outline:none;border-color:var(--red)}
+.set-done-btn{width:32px;height:32px;border-radius:8px;border:2px solid var(--border);background:none;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.set-done-btn.done{background:var(--green);border-color:var(--green);color:#fff}
+.calc-weight{font-size:10px;color:var(--blue);margin-top:1px}
+/* HIIT MARKER */
+.hiit-banner{background:linear-gradient(135deg,var(--red2),var(--red));border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.hiit-banner-text{font-size:15px;font-weight:700}
+.hiit-banner-sub{font-size:12px;opacity:.8;margin-top:2px}
+/* HIIT SCREEN */
+.hiit-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.hiit-header{padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.hiit-title{font-size:15px;font-weight:700}
+.hiit-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.hiit-body.open{display:block}
+.hiit-step{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.hiit-step:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
+.step-text{flex:1;font-size:13px;line-height:1.5}
+.step-meta{font-size:11px;color:var(--gold);font-weight:700}
+.recommend-badge{background:rgba(74,158,255,.15);border:1px solid var(--blue);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:12px}
+/* AGILE 8 */
+.agile-item{padding:12px 0;border-bottom:1px solid var(--border)}
+.agile-item:last-child{border-bottom:none}
+.agile-item h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.agile-item p{font-size:12px;color:var(--muted);line-height:1.5}
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.setting-label{font-size:14px;font-weight:600}
+.setting-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.max-input{width:90px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-size:16px;font-weight:700;text-align:center;-moz-appearance:textfield}
+.max-input::-webkit-outer-spin-button,.max-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.max-input:focus{outline:none;border-color:var(--red)}
+.unit-toggle{display:flex;background:var(--bg3);border-radius:8px;padding:2px}
+.unit-btn{padding:5px 14px;border-radius:6px;border:none;background:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer}
+.unit-btn.active{background:var(--red);color:#fff}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px 20px calc(20px + var(--safe-bottom));max-height:80vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:16px}
+/* REST TIMER */
+.timer-display{text-align:center;padding:20px 0}
+.timer-num{font-size:64px;font-weight:800;color:var(--red);line-height:1}
+.timer-label{font-size:14px;color:var(--muted);margin-top:6px}
+.timer-btns{display:flex;gap:10px;margin-top:16px}
+.timer-btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;font-weight:700;cursor:pointer}
+.timer-btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+/* SECTION LABEL */
+.section-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:16px 0 8px}
+/* SPECIAL SETS */
+.grip-badge{display:inline-block;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--gold);margin-right:4px;font-weight:600}
+/* COMPLETE BTN */
+.complete-banner{background:var(--green);border-radius:14px;padding:16px;text-align:center;cursor:pointer;margin-top:6px;font-size:16px;font-weight:800;letter-spacing:.5px;transition:opacity .2s}
+.complete-banner:active{opacity:.8}
+.complete-banner.done{background:var(--bg3);color:var(--muted);cursor:default}
+/* Toast */
+#toast{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%) translateY(-20px);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state svg{margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:14px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div class="header-row">
+      <div>
+        <div class="header-title">PowerBuilding</div>
+        <div class="header-sub" id="header-sub">by Terry Hollands</div>
+      </div>
+      <div class="phase-badge" id="header-badge">PHASE 1</div>
+    </div>
+  </div>
+
+  <div id="screens">
+    <!-- HOME -->
+    <div class="screen" id="screen-home">
+      <div class="card" style="margin-top:4px">
+        <div class="progress-ring-wrap">
+          <div class="big-stat">
+            <div class="big-num" id="pct-done">0%</div>
+            <div class="big-label">COMPLETE</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Overall Progress</div>
+            <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+            <div style="font-size:11px;color:var(--muted)" id="prog-label">0 of 47 sessions done</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="next-session-card"></div>
+
+      <div class="section-label">This Week</div>
+      <div id="week-sessions-grid" class="session-grid"></div>
+
+      <div class="section-label">Jump to Week</div>
+      <div class="week-scroll" id="home-week-scroll"></div>
+    </div>
+
+    <!-- PROGRAMME -->
+    <div class="screen hidden" id="screen-programme">
+      <div class="week-scroll" id="prog-week-scroll"></div>
+      <div id="prog-sessions"></div>
+    </div>
+
+    <!-- SESSION -->
+    <div class="screen hidden" id="screen-session">
+      <div class="session-header">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <button class="big-btn secondary" style="width:auto;padding:8px 14px;font-size:13px;margin:0" onclick="App.backFromSession()">← Back</button>
+          <div>
+            <div style="font-size:12px;color:var(--muted)" id="sess-week-label"></div>
+            <h2 id="sess-title"></h2>
+          </div>
+        </div>
+      </div>
+      <div id="session-exercises"></div>
+    </div>
+
+    <!-- HIIT -->
+    <div class="screen hidden" id="screen-hiit">
+      <div class="section-label">Choose Your HIIT</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5">Done after every session. Maximum effort during work periods — these should never be easy. Check the <span style="color:var(--red);font-weight:700">Avoid after</span> badge and skip leg-heavy options after lower body sessions.</p>
+      <div id="hiit-cards"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen hidden" id="screen-settings">
+      <div class="section-label">Your 1 Rep Maxes</div>
+      <div class="card">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <div class="unit-toggle">
+            <button class="unit-btn active" id="unit-kg" onclick="App.setUnit('kg')">kg</button>
+            <button class="unit-btn" id="unit-lbs" onclick="App.setUnit('lbs')">lbs</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Squat</div><div class="setting-sub" id="sq-sub">Used for box squats &amp; leg work</div></div>
+          <input type="number" class="max-input" id="max-squat" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Deadlift</div><div class="setting-sub">Used for deadlifts</div></div>
+          <input type="number" class="max-input" id="max-deadlift" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Bench Press</div><div class="setting-sub">Used for flat bench</div></div>
+          <input type="number" class="max-input" id="max-bench" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="setting-row" style="border:none">
+          <div><div class="setting-label">Military Press</div><div class="setting-sub">Used for overhead work</div></div>
+          <input type="number" class="max-input" id="max-military" placeholder="0" inputmode="numeric">
+        </div>
+        <button class="big-btn" onclick="App.saveMaxes()" style="margin-top:4px">Save Maxes</button>
+      </div>
+
+      <div class="section-label">Agile 8 — Pre-Session Mobility</div>
+      <div class="card">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Do these before every session. Also recommended on rest days. Takes 10–20 minutes.</p>
+        <p style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px">FOAM ROLLING (hold tight spots)</p>
+        <div class="agile-item">
+          <h4>IT Band</h4>
+          <p>Lie on your side on top of the foam roller. Slide up and down from your knee to just above your hip.</p>
+        </div>
+        <div class="agile-item">
+          <h4>Piriformis</h4>
+          <p>Sit on the foam roller, cross your leg onto the opposite knee and lean onto the side of that knee. Roll up and down across your glute.</p>
+        </div>
+        <div class="agile-item">
+          <h4>Adductor</h4>
+          <p>With belly to the ground, place the inside of your thigh on the foam roller and roll around.</p>
+        </div>
+        <p style="font-size:12px;font-weight:700;color:var(--gold);margin:12px 0 8px">DYNAMIC DRILLS</p>
+        <div class="agile-item">
+          <h4>V-Sit Roll Over</h4>
+          <p>Sit with legs in front of you, roll back until toes touch the ground behind your head. Roll forward and spread legs in a straddle.</p>
+        </div>
+        <div class="agile-item">
+          <h4>Hip Rotation</h4>
+          <p>Palms and knees on the ground. Keep torso stable and trace circles with one knee. Both sides.</p>
+        </div>
+        <div class="agile-item">
+          <h4>Groiner</h4>
+          <p>Sink into a deep lunge with hands on the ground, forward foot outside your hand. Jump and switch legs.</p>
+        </div>
+        <div class="agile-item">
+          <h4>Frog Jump</h4>
+          <p>Start in push up position, jump both feet forward to land outside your hands. Reverse and repeat.</p>
+        </div>
+        <div class="agile-item" style="border:none">
+          <h4>First Baseman Stretch</h4>
+          <p>Lunge and touch your knee to the ground. Raise the arm on the same side as the grounded knee, lean forward to stretch your hip flexor.</p>
+        </div>
+      </div>
+
+      <div class="section-label">Reset</div>
+      <div class="card">
+        <button class="big-btn secondary" onclick="App.resetProgress()" style="background:rgba(230,57,70,.15);border-color:var(--red);color:var(--red)">Reset All Progress</button>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" onclick="App.nav('home')" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" onclick="App.nav('programme')" id="nav-programme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Programme
+    </button>
+    <button class="nav-btn" onclick="App.nav('hiit')" id="nav-hiit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      HIIT
+    </button>
+    <button class="nav-btn" onclick="App.nav('settings')" id="nav-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- REST TIMER MODAL -->
+<div class="modal-overlay hidden" id="timer-modal" onclick="App.closeTimerIfOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Rest Timer</div>
+    <div class="timer-display">
+      <div class="timer-num" id="timer-num">2:00</div>
+      <div class="timer-label" id="timer-label">Rest period</div>
+    </div>
+    <div class="timer-btns">
+      <button class="timer-btn" onclick="App.addTime(-15)">-15s</button>
+      <button class="timer-btn" onclick="App.addTime(15)">+15s</button>
+      <button class="timer-btn primary" id="timer-start-btn" onclick="App.toggleTimer()">Start</button>
+      <button class="timer-btn" onclick="App.closeTimer()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// PROGRAMME DATA
+// ═══════════════════════════════════════════════
+const PHASE_LABELS = ['Phase 1: Hypertrophy & Conditioning','Phase 2: Strength & Conditioning','Phase 3: Explosive Power'];
+const SESSION_FOCUS = ['Lower Body','Pushing','Pulling','Posterior Chain'];
+
+// Exercise builder helpers
+const wr=(name,sets,reps,pOf,pct,rest,notes,extra={})=>({name,sets,reps,percentOf:pOf,percent:pct,rest,notes,logType:'wr',...extra});
+const rOnly=(name,sets,reps,rest,notes,extra={})=>({name,sets,reps,percentOf:null,percent:null,rest,notes,logType:'r',...extra});
+const timed=(name,sets,rest,notes)=>({name,sets,reps:'max-time',percentOf:null,percent:null,rest,notes,logType:'t'});
+const HIIT_M={isHIIT:true};
+
+// Shared exercises for Phase 1 sessions 1&2
+const p1s1_shared=(sqPct,dlPct,sqReps,dlReps,dlGrips)=>[
+  wr('Box Squats',3,sqReps,'squat',sqPct,120,'Set box so you hit parallel on touch. Light touch and stay tight'),
+  {name:'Triple Grip Deadlifts',sets:3,reps:dlReps,percentOf:'deadlift',percent:dlPct,rest:120,
+   notes:`${dlGrips[0]} snatch grip + ${dlGrips[1]} medium grip + ${dlGrips[2]} clean grip = ${dlReps} reps/set. Snatch → Medium → Clean`,
+   logType:'wr',grips:dlGrips},
+  rOnly('Box Step Ups',3,15,90,'Each leg. Box at 90° when foot on box',{isEachLeg:true}),
+  rOnly('Reverse Lunges',3,15,90,'Each leg. Nice and controlled — TAKE YOUR TIME!!',{isEachLeg:true}),
+  wr('Leg Extensions',3,15,null,null,0,'Squeeze at the top for a count of 2'),
+  HIIT_M
+];
+const p1s2_shared=(mpPct,mpReps,bpPct,bpReps)=>[
+  wr('Military Press',4,mpReps,'military',mpPct,120,'Full range on every rep'),
+  wr('Incline DB Press',3,12,null,null,120,'45° incline'),
+  wr('Flat Bench Press',3,bpReps,'bench',bpPct,90,'2 second eccentric on every rep'),
+  {name:'Z Press',sets:3,reps:[6,9,12],percentOf:null,percent:null,rest:0,
+   notes:'Alternate arms. KB or DB. Don\'t go too crazy with the weight — gets hard quickly',
+   logType:'wr',specialSets:['6 each arm','9 each arm','12 each arm']},
+  {name:'Planks',sets:3,reps:'30s',percentOf:null,percent:null,rest:0,
+   notes:'30s front + 30s each side. If can\'t manage 30s → 3×max time',logType:'t'},
+  HIIT_M
+];
+const p1s3=(rowReps)=>[
+  wr('Pendlay Rows',3,rowReps,null,null,120,'As heavy as possible. Make sure they\'re honest reps'),
+  wr('See Saw Rows',3,15,null,null,90,'Each arm. Nice and controlled, don\'t rush',{isEachArm:true}),
+  rOnly('Ring Pull Ups',3,'max',90,'Use a pull up bar if no rings. Push to failure each set'),
+  timed('Active Hangs',3,0,'Hang from rings/bar with full stretch, then lift from your upper back keeping arms straight'),
+  HIIT_M
+];
+const p1s4=(plate)=>[
+  {name:'Single Leg RDL',sets:3,reps:[6,9,12],percentOf:null,percent:null,rest:120,
+   notes:'KB or DB in each hand. 1 set of 6, 1 set of 9, 1 set of 12',logType:'wr',isEachLeg:true},
+  rOnly('Single Leg Glute Bridge',3,15,120,'Each leg. Squeeze glute at top for count of 2',{isEachLeg:true}),
+  rOnly('Hyper Extension',3,20,90,plate?'Use 10kg plate held on chest. 30s hold at top then 20 reps':'30s hold at top then 20 reps'),
+  wr('Sumo Deadlift',3,12,null,null,90,'KB preferred, barbell fine. Core tight at bottom, back straight, hips low, knees out'),
+  rOnly('Crunches',3,'max',90,'3 sets of max reps'),
+  HIIT_M
+];
+
+// Phase 2 shared
+const p2s1=(sqPct,sqReps,dlPct,dlReps,lungeReps,legExtReps)=>[
+  wr('Box Squats',3,sqReps,'squat',sqPct,180,'Set box so you hit parallel on touch. Light touch and stay tight'),
+  wr('15" Deadlifts',3,dlReps,'deadlift',dlPct,180,'Bar starts at 15 inches (about knee height)'),
+  {name:'Leg Press',sets:3,reps:5,percentOf:null,percent:null,rest:120,notes:'HEAVY — push your limits',logType:'wr'},
+  rOnly('Goblet Reverse Lunges',3,lungeReps,0,'Each leg. Hold DB or KB at chest',{isEachLeg:true}),
+  wr('Leg Extensions',3,legExtReps,null,null,0,'Squeeze at top for count of 2'),
+  HIIT_M
+];
+const p2s2=(mpPct,mpReps,bpPct,bpReps,zReps)=>[
+  wr('Military Press',4,mpReps,'military',mpPct,180,'Full range on every rep'),
+  wr('Incline DB Press',3,mpReps,null,null,180,'45° incline'),
+  wr('Flat Bench Press',3,bpReps,'bench',bpPct,90,'2 second eccentric on every rep'),
+  {name:'Z Press',sets:3,reps:zReps,percentOf:null,percent:null,rest:120,
+   notes:'Both arms together. KB or DB',logType:'wr'},
+  {name:'Planks',sets:3,reps:'30s',percentOf:null,percent:null,rest:0,
+   notes:'30s front + 30s each side. If can\'t manage 30s → 3×max time',logType:'t'},
+  HIIT_M
+];
+const p2s3=(rowReps,ssReps)=>[
+  wr('Pendlay Rows',3,rowReps,null,null,180,'As heavy as possible — start to load from Phase 1'),
+  wr('See Saw Rows',3,ssReps,null,null,90,'Each arm. Nice and controlled',{isEachArm:true}),
+  rOnly('Ring Pull Ups',3,'max',90,'Push to failure each set'),
+  timed('Active Hangs',3,0,'Hang from rings/bar with full stretch, then lift from upper back keeping arms straight'),
+  HIIT_M
+];
+const p2s4=(rdlReps,gbReps,hyperReps,sdReps)=>[
+  wr('Barbell RDL',3,rdlReps,null,null,180,'Focus on hinge at hips, slight knee bend, bar close to body'),
+  wr('Weighted Glute Bridge',3,gbReps,null,null,180,'Squeeze glute at top for count of 2'),
+  rOnly('Hyper Extension',3,hyperReps,90,'Use as much weight as possible'),
+  wr('Sumo Deadlift',3,sdReps,null,null,120,'KB preferred. Core tight, back straight, hips low, knees out'),
+  rOnly('Crunches',3,'max',90,'3 sets of max reps'),
+  HIIT_M
+];
+
+// Phase 3 shared
+const p3s1=(sqPct,sqReps,dlPct,dlReps,speedPct)=>[
+  wr('Box Squats',3,sqReps,'squat',sqPct,180,'Full intensity — near max effort'),
+  wr('15" Deadlifts',3,dlReps,'deadlift',dlPct,180,'Near max effort — stay tight throughout'),
+  wr('Speed Deadlifts',8,3,'deadlift',speedPct,60,'EXPLOSIVE off the floor. Focus on speed, not weight'),
+  {name:'Leg Press',sets:8,reps:3,percentOf:null,percent:null,rest:60,
+   notes:'~50% of max. Slow controlled descent — EXPLOSIVE up',logType:'wr'},
+  rOnly('Box Jumps',5,3,0,'Onto as high a box as possible. Reset fully between reps'),
+  HIIT_M
+];
+const p3s2=(mpPct,mpReps,bpPct,bpReps,speedPct)=>[
+  wr('Military Press',4,mpReps,'military',mpPct,180,'Full intensity'),
+  wr('Speed Military Press',8,3,'military',speedPct,60,'EXPLOSIVE every rep — focus on bar speed'),
+  wr('Flat Bench Press',3,bpReps,'bench',bpPct,90,'2 second eccentric, full power up'),
+  wr('Speed Bench',8,3,'bench',speedPct,0,'EXPLOSIVE every rep — focus on bar speed'),
+  {name:'Planks',sets:3,reps:'30s',percentOf:null,percent:null,rest:0,
+   notes:'30s front + 30s each side',logType:'t'},
+  HIIT_M
+];
+const p3s3=(rowReps)=>[
+  wr('Pendlay Rows',3,rowReps,null,null,180,'As heavy as possible'),
+  wr('Seated Rows',3,8,null,null,90,'Controlled tempo, full stretch and squeeze'),
+  wr('Ring Pull Ups',3,5,null,null,90,'Add weight. 3×5 weighted reps',{addWeight:true}),
+  timed('Active Hangs',3,0,'Hang from rings/bar with full stretch, then lift from upper back keeping arms straight'),
+  HIIT_M
+];
+const p3s4=(rdlReps)=>[
+  wr('Barbell RDL',3,rdlReps,null,null,180,'Focus on power production'),
+  {name:'KB Swings',sets:3,reps:8,percentOf:null,percent:null,rest:0,
+   notes:'Focus on power coming from glutes — really squeeze them hard',logType:'wr'},
+  {name:'Good Mornings',sets:8,reps:3,percentOf:null,percent:null,rest:0,
+   notes:'Light and EXPLOSIVE. Keep core tight. Add bands/chains if available',logType:'wr'},
+  rOnly('Crunches',3,'max',90,'3 sets of max reps'),
+  HIIT_M
+];
+
+// ─── FULL 12-WEEK PROGRAMME ───────────────────
+const PROGRAMME = [
+  // ─── PHASE 1 ───────────────────────────────
+  { week:1, phase:0, sessions:[
+    {focus:0,exercises:p1s1_shared(63,63,12,14,[6,5,3])},
+    {focus:1,exercises:p1s2_shared(63,15,63,12)},
+    {focus:2,exercises:p1s3(12)},
+    {focus:3,exercises:p1s4(false)}
+  ]},
+  { week:2, phase:0, sessions:[
+    {focus:0,exercises:p1s1_shared(65,65,12,14,[6,5,3])},
+    {focus:1,exercises:p1s2_shared(65,15,65,12)},
+    {focus:2,exercises:p1s3(10)},
+    {focus:3,exercises:p1s4(false)}
+  ]},
+  { week:3, phase:0, sessions:[
+    {focus:0,exercises:p1s1_shared(70,70,10,10,[5,3,2])},
+    {focus:1,exercises:p1s2_shared(70,10,70,8)},
+    {focus:2,exercises:p1s3(8)},
+    {focus:3,exercises:p1s4(true)}
+  ]},
+  { week:4, phase:0, sessions:[
+    {focus:0,exercises:p1s1_shared(72,72,10,10,[5,3,2])},
+    {focus:1,exercises:p1s2_shared(72,10,72,8)},
+    {focus:2,exercises:p1s3(6)},
+    {focus:3,exercises:p1s4(true)}
+  ]},
+  // ─── PHASE 2 ───────────────────────────────
+  { week:5, phase:1, sessions:[
+    {focus:0,exercises:p2s1(75,8,75,8,8,8)},
+    {focus:1,exercises:p2s2(75,8,75,6,6)},
+    {focus:2,exercises:p2s3(5,8)},
+    {focus:3,exercises:p2s4(8,8,20,8)}
+  ]},
+  { week:6, phase:1, sessions:[
+    {focus:0,exercises:p2s1(77,8,75,8,8,8)},
+    {focus:1,exercises:p2s2(77,8,77,6,6)},
+    {focus:2,exercises:p2s3(5,8)},
+    {focus:3,exercises:p2s4(8,8,20,8)}
+  ]},
+  { week:7, phase:1, sessions:[
+    {focus:0,exercises:p2s1(81,6,81,6,8,8)},
+    {focus:1,exercises:p2s2(81,6,81,4,5)},
+    {focus:2,exercises:p2s3(4,6)},
+    {focus:3,exercises:p2s4(6,6,15,6)}
+  ]},
+  { week:8, phase:1, sessions:[
+    {focus:0,exercises:p2s1(85,5,85,5,5,8)},
+    {focus:1,exercises:p2s2(85,5,85,3,5)},
+    {focus:2,exercises:p2s3(3,5)},
+    {focus:3,exercises:p2s4(5,5,15,5)}
+  ]},
+  // ─── PHASE 3 ───────────────────────────────
+  { week:9, phase:2, sessions:[
+    {focus:0,exercises:p3s1(92,4,92,4,50)},
+    {focus:1,exercises:p3s2(92,4,92,4,50)},
+    {focus:2,exercises:p3s3(4)},
+    {focus:3,exercises:p3s4(5)}
+  ]},
+  { week:10, phase:2, sessions:[
+    {focus:0,exercises:p3s1(95,3,95,3,52)},
+    {focus:1,exercises:p3s2(95,3,95,3,52)},
+    {focus:2,exercises:p3s3(3)},
+    {focus:3,exercises:p3s4(3)}
+  ]},
+  { week:11, phase:2, sessions:[
+    {focus:0,exercises:p3s1(97,1,97,1,54)},
+    {focus:1,exercises:p3s2(97,1,97,1,54)},
+    {focus:2,exercises:p3s3(2)},
+    {focus:3,exercises:p3s4(3)}
+  ]},
+  // ─── WEEK 12 — MAX TESTING ─────────────────
+  { week:12, phase:2, sessions:[
+    {focus:0,exercises:[
+      {name:'Squat',sets:1,reps:'max-test',percentOf:null,percent:null,rest:300,
+       notes:'Work up to a new 1 rep max. Take your time, warm up properly',logType:'wr'},
+      HIIT_M
+    ]},
+    {focus:1,exercises:[
+      {name:'Military Press',sets:1,reps:'max-test',percentOf:null,percent:null,rest:300,
+       notes:'Work up to a new 1 rep max',logType:'wr'},
+      {name:'Flat Bench Press',sets:1,reps:'max-test',percentOf:null,percent:null,rest:300,
+       notes:'Work up to a new 1 rep max',logType:'wr'},
+      HIIT_M
+    ]},
+    {focus:2,exercises:[
+      {name:'Deadlift',sets:1,reps:'max-test',percentOf:null,percent:null,rest:300,
+       notes:'Work up to a new 1 rep max. You\'ve earned it — go for it!',logType:'wr'},
+      HIIT_M
+    ]}
+  ]}
+];
+
+// ═══════════════════════════════════════════════
+// HIIT WORKOUTS
+// ═══════════════════════════════════════════════
+const HIIT_WORKOUTS = [
+  {
+    id:'rower-sprints',
+    title:'Rower Sprints',
+    icon:'🚣',
+    duration:'~12 min',
+    equipment:'Concept 2 Rower',
+    avoidAfter:[],
+    steps:[
+      {label:'5 × 250m sprint intervals — max effort every time',isHeader:true},
+      {num:1,name:'250m Sprint',detail:'Go as fast as possible — no pacing, full commitment from the first stroke'},
+      {num:2,name:'Rest',detail:'1 minute complete rest. Get off the rower, shake out your legs'},
+      {label:'5 total intervals. Try to match your split time across all 5',isNote:true}
+    ]
+  },
+  {
+    id:'rower-pyramid',
+    title:'Rower Pyramid',
+    icon:'🚣',
+    duration:'~18 min',
+    equipment:'Concept 2 Rower',
+    avoidAfter:[],
+    steps:[
+      {label:'Work up then back down — rest = work time between each',isHeader:true},
+      {num:1,name:'500m',detail:'Row 500m at hard effort — note your time, rest that long'},
+      {num:2,name:'400m',detail:'Row 400m slightly harder — rest = your 400m time'},
+      {num:3,name:'300m',detail:'Row 300m near max — rest = your 300m time'},
+      {num:4,name:'200m',detail:'Row 200m all out — rest = your 200m time'},
+      {num:5,name:'200m',detail:'Row 200m all out — rest = your 200m time'},
+      {num:6,name:'300m',detail:'Row 300m near max — rest = your 300m time'},
+      {num:7,name:'400m',detail:'Row 400m hard — rest = your 400m time'},
+      {num:8,name:'500m',detail:'Row 500m to finish — everything you have left'},
+      {label:'That\'s 1 complete pyramid. 1 round is enough',isNote:true}
+    ]
+  },
+  {
+    id:'spin-bike-intervals',
+    title:'Spin Bike Intervals',
+    icon:'🚴',
+    duration:'15 min',
+    equipment:'Spin Bike',
+    avoidAfter:[],
+    steps:[
+      {label:'2 min moderate / 1 min MAX — repeat for 15 min (5 rounds)',isHeader:true},
+      {num:1,name:'Easy Spin',detail:'2 minutes — low resistance, comfortable pace, use it to breathe and prepare'},
+      {num:2,name:'ALL OUT',detail:'1 minute — crank up the resistance, maximum cadence, stand up if needed. GO HARD'},
+      {label:'5 complete cycles. The rest period is active — don\'t stop pedalling',isNote:true}
+    ]
+  },
+  {
+    id:'spin-bike-tabata',
+    title:'Spin Bike Tabata',
+    icon:'🚴',
+    duration:'~12 min',
+    equipment:'Spin Bike',
+    avoidAfter:[],
+    steps:[
+      {label:'20s on / 10s rest × 8 rounds = 1 tabata block. Do 3 blocks with 2 min rest between',isHeader:true},
+      {num:1,name:'Sprint (20s)',detail:'Absolute maximum effort — highest resistance you can turn over fast, out of the saddle'},
+      {num:2,name:'Rest (10s)',detail:'Stay on the bike, barely pedal, recover as fast as possible'},
+      {num:3,name:'8 rounds',detail:'That\'s 1 Tabata block (4 minutes). Rest 2 minutes then repeat'},
+      {label:'3 blocks total. You should be completely destroyed by the end',isNote:true}
+    ]
+  },
+  {
+    id:'treadmill-sprints',
+    title:'Treadmill Sprint Intervals',
+    icon:'🏃',
+    duration:'~15 min',
+    equipment:'Treadmill',
+    avoidAfter:['Lower Body','Posterior Chain'],
+    steps:[
+      {label:'30s sprint / 90s walk — 8 rounds',isHeader:true},
+      {num:1,name:'Sprint',detail:'30 seconds — set treadmill to a speed you can barely hold. Push yourself'},
+      {num:2,name:'Walk',detail:'90 seconds — slow right down to a recovery walk. Catch your breath'},
+      {label:'8 rounds total (~16 min). Increase sprint speed each week as you get fitter',isNote:true}
+    ]
+  },
+  {
+    id:'treadmill-incline-walk',
+    title:'Treadmill Hill Walk',
+    icon:'⛰️',
+    duration:'15 min',
+    equipment:'Treadmill',
+    avoidAfter:[],
+    steps:[
+      {label:'Max incline, moderate pace — no holding the rails',isHeader:true},
+      {num:1,name:'Minutes 0–5',detail:'Set incline to max (or as high as possible). Walk at a pace where you can\'t hold a conversation — around 5–6 km/h'},
+      {num:2,name:'Minutes 5–10',detail:'Increase pace slightly. Pump your arms. No holding the rails — that kills the stimulus'},
+      {num:3,name:'Minutes 10–15',detail:'Push pace as high as you can sustain. Finish strong'},
+      {label:'Great low-impact option after heavy lower body sessions',isNote:true}
+    ]
+  },
+  {
+    id:'kb-conditioning',
+    title:'KB Conditioning Circuit',
+    icon:'🏋️',
+    duration:'~16 min',
+    equipment:'Kettlebell',
+    avoidAfter:[],
+    steps:[
+      {label:'Complete 4 rounds — 40s work / 20s rest on each exercise',isHeader:true},
+      {num:1,name:'KB Swings',detail:'40s — hip-driven, explosive. Squeeze glutes hard at the top. 20s rest'},
+      {num:2,name:'KB Goblet Squat',detail:'40s — hold KB at chest, sit deep, chest up. Controlled down, drive up hard. 20s rest'},
+      {num:3,name:'KB High Pull',detail:'40s — drive from the hips, pull the KB high to chin level, elbows flare wide. 20s rest'},
+      {num:4,name:'KB Push Press',detail:'40s — slight dip and drive with legs, press overhead, lock out at top. 20s rest'},
+      {label:'Rest 90 seconds between each round. 4 rounds total',isNote:true}
+    ]
+  },
+  {
+    id:'kb-amrap',
+    title:'KB Chipper AMRAP',
+    icon:'🏋️',
+    duration:'15 min',
+    equipment:'Kettlebell',
+    avoidAfter:['Lower Body','Posterior Chain'],
+    steps:[
+      {label:'As Many Rounds As Possible in 15 minutes',isHeader:true},
+      {num:1,name:'10 KB Swings',detail:'Two-handed, hip hinge drive, full lockout at top'},
+      {num:2,name:'8 KB Rows (each arm)',detail:'Brace on your knee, full range pull, squeeze at top'},
+      {num:3,name:'6 KB Clean & Press (each arm)',detail:'Clean to rack, press overhead, lower under control'},
+      {num:4,name:'10 KB Deadlifts',detail:'Sumo stance, two-handed. Keep back flat, drive through heels'},
+      {label:'Record your rounds. Aim to beat it next time',isNote:true}
+    ]
+  },
+  {
+    id:'band-core-blast',
+    title:'Resistance Band & Ab Roller Circuit',
+    icon:'💪',
+    duration:'~15 min',
+    equipment:'Resistance Bands + Ab Roller',
+    avoidAfter:[],
+    steps:[
+      {label:'Complete 4 rounds — minimal rest within rounds, 60s rest between',isHeader:true},
+      {num:1,name:'Band Pull-Aparts × 25',detail:'Arms straight in front, pull the band apart to chest level. Full stretch each rep. No momentum'},
+      {num:2,name:'Ab Roller Rollouts × 10',detail:'From knees, roll out as far as you can control, pause, drag back. Don\'t let your hips drop'},
+      {num:3,name:'Band Face Pulls × 20',detail:'Anchor band at face height. Pull to forehead, elbows high and wide. Squeeze your rear delts'},
+      {num:4,name:'Ab Roller Rollouts × 10',detail:'Second set — slow the eccentric down, take 3 seconds to roll out'},
+      {num:5,name:'Band Woodchops × 15 each side',detail:'Anchor band low, pull diagonally across body to opposite shoulder. Rotate from the core'},
+      {label:'Rest 60s between rounds. Increase rollout range as you get stronger',isNote:true}
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════
+// STATE & STORAGE
+// ═══════════════════════════════════════════════
+const TOTAL_SESSIONS = PROGRAMME.reduce((a,w)=>a+w.sessions.length,0);
+
+const State = {
+  maxes:{squat:0,deadlift:0,bench:0,military:0},
+  unit:'kg',
+  logs:{},    // key: "w-s" → {completed:bool,date:str,sets:[[{w,r,done}]]}
+  current:{week:1,session:1},
+
+  load(){
+    try{
+      const m=localStorage.getItem('pb_maxes');
+      if(m) this.maxes=JSON.parse(m);
+      const l=localStorage.getItem('pb_logs');
+      if(l) this.logs=JSON.parse(l);
+      const c=localStorage.getItem('pb_current');
+      if(c) this.current=JSON.parse(c);
+      const u=localStorage.getItem('pb_unit');
+      if(u) this.unit=u;
+    }catch(e){}
+  },
+  save(){
+    localStorage.setItem('pb_maxes',JSON.stringify(this.maxes));
+    localStorage.setItem('pb_logs',JSON.stringify(this.logs));
+    localStorage.setItem('pb_current',JSON.stringify(this.current));
+    localStorage.setItem('pb_unit',this.unit);
+  },
+  key(w,s){return `${w}-${s}`},
+  getLog(w,s){
+    const k=this.key(w,s);
+    if(!this.logs[k]) this.logs[k]={completed:false,date:null,exercises:[]};
+    return this.logs[k];
+  },
+  isCompleted(w,s){return !!(this.logs[this.key(w,s)]?.completed)},
+  completedCount(){return Object.values(this.logs).filter(l=>l.completed).length},
+  calcWeight(pct,lift){
+    const m=this.maxes[lift]||0;
+    if(!m||!pct) return null;
+    const raw=m*(pct/100);
+    // round to nearest 2.5
+    return Math.round(raw/2.5)*2.5;
+  },
+  formatWeight(w){if(!w) return null; return `${w}${this.unit}`},
+  nextIncompleteSession(){
+    for(const week of PROGRAMME){
+      for(let si=0;si<week.sessions.length;si++){
+        if(!this.isCompleted(week.week,si+1)) return {week:week.week,session:si+1};
+      }
+    }
+    return null;
+  }
+};
+
+// ═══════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════
+const App = {
+  currentTab:'home',
+  currentSessionView:{week:1,session:1},
+  timerInterval:null,
+  timerRemaining:0,
+  timerRunning:false,
+
+  init(){
+    State.load();
+    this.renderHome();
+    this.renderProgramme();
+    this.renderHiit();
+    this.renderSettings();
+    this.updateHeader();
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  },
+
+  nav(tab){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById(`screen-${tab}`).classList.remove('hidden');
+    document.getElementById(`nav-${tab}`).classList.add('active');
+    this.currentTab=tab;
+    if(tab==='home') this.renderHome();
+  },
+
+  updateHeader(){
+    const next=State.nextIncompleteSession();
+    if(next){
+      const w=PROGRAMME[next.week-1];
+      document.getElementById('header-sub').textContent=`Week ${next.week} • ${SESSION_FOCUS[PROGRAMME[next.week-1].sessions[next.session-1].focus]}`;
+      document.getElementById('header-badge').textContent=`PHASE ${w.phase+1}`;
+    }
+  },
+
+  // ─── HOME ─────────────────────────────────
+  renderHome(){
+    const done=State.completedCount();
+    const pct=Math.round((done/TOTAL_SESSIONS)*100);
+    document.getElementById('pct-done').textContent=pct+'%';
+    document.getElementById('prog-fill').style.width=pct+'%';
+    document.getElementById('prog-label').textContent=`${done} of ${TOTAL_SESSIONS} sessions done`;
+
+    // Next session card
+    const next=State.nextIncompleteSession();
+    const nsc=document.getElementById('next-session-card');
+    if(next){
+      const wd=PROGRAMME[next.week-1];
+      const sess=wd.sessions[next.session-1];
+      nsc.innerHTML=`
+        <div class="card" style="border-color:var(--red);background:rgba(230,57,70,.06)">
+          <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:6px">UP NEXT</div>
+          <div style="font-size:18px;font-weight:800;margin-bottom:2px">Week ${next.week} — Session ${next.session}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${PHASE_LABELS[wd.phase]} • ${SESSION_FOCUS[sess.focus]}</div>
+          <button class="big-btn" onclick="App.openSession(${next.week},${next.session})">Start Session →</button>
+        </div>`;
+    } else {
+      nsc.innerHTML=`<div class="card" style="text-align:center;padding:20px">
+        <div style="font-size:24px;margin-bottom:8px">🏆</div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">Programme Complete!</div>
+        <div style="font-size:13px;color:var(--muted)">Take a recovery week, then run it again.</div>
+      </div>`;
+    }
+
+    // Current week grid
+    const curWeek=next?next.week:12;
+    const grid=document.getElementById('week-sessions-grid');
+    const wd=PROGRAMME[curWeek-1];
+    grid.innerHTML=wd.sessions.map((s,i)=>{
+      const done=State.isCompleted(curWeek,i+1);
+      const isCur=next&&next.week===curWeek&&next.session===i+1;
+      return `<div class="session-tile ${done?'done':''} ${isCur?'current':''}" onclick="App.openSession(${curWeek},${i+1})">
+        <div class="tile-session">Session ${i+1} ${done?'<span class="tile-check">✓</span>':''}</div>
+        <div class="tile-focus">${SESSION_FOCUS[s.focus]}</div>
+      </div>`;
+    }).join('');
+
+    // Week scroll
+    const scroll=document.getElementById('home-week-scroll');
+    scroll.innerHTML=PROGRAMME.map(w=>{
+      const allDone=w.sessions.every((_,i)=>State.isCompleted(w.week,i+1));
+      const isCur=w.week===curWeek;
+      return `<div class="week-chip ${isCur?'active':''} ${allDone&&!isCur?'done':''}" onclick="App.jumpToWeek(${w.week})">
+        W${w.week}${allDone?' ✓':''}
+      </div>`;
+    }).join('');
+  },
+
+  jumpToWeek(w){
+    this.nav('programme');
+    setTimeout(()=>this.selectWeek(w,'prog'),50);
+  },
+
+  // ─── PROGRAMME ────────────────────────────
+  renderProgramme(){
+    const scroll=document.getElementById('prog-week-scroll');
+    scroll.innerHTML=PROGRAMME.map(w=>`
+      <div class="week-chip" id="pw-${w.week}" onclick="App.selectWeek(${w.week},'prog')" style="flex-shrink:0">
+        W${w.week}
+      </div>`).join('');
+    this.selectWeek(State.current.week||1,'prog');
+  },
+
+  selectWeek(wNum,src='prog'){
+    document.querySelectorAll('.week-chip').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll(`[id^="pw-${wNum}"]`).forEach(c=>c.classList.add('active'));
+    const wd=PROGRAMME[wNum-1];
+    const cont=document.getElementById('prog-sessions');
+    cont.innerHTML=`
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px">WEEK ${wd.week}</div>
+        <div style="font-size:18px;font-weight:800">${PHASE_LABELS[wd.phase]}</div>
+      </div>
+      ${wd.sessions.map((s,i)=>{
+        const done=State.isCompleted(wd.week,i+1);
+        return `<div class="card" style="${done?'border-color:var(--green)':''}" onclick="App.openSession(${wd.week},${i+1})" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="font-weight:700">Session ${i+1} — ${SESSION_FOCUS[s.focus]}</div>
+            ${done?'<span style="color:var(--green);font-size:16px">✓</span>':'<span style="color:var(--muted);font-size:12px">→</span>'}
+          </div>
+          <div style="font-size:12px;color:var(--muted)">${s.exercises.filter(e=>!e.isHIIT).map(e=>e.name).join(' • ')}</div>
+        </div>`;
+      }).join('')}`;
+  },
+
+  // ─── SESSION VIEW ─────────────────────────
+  openSession(week,session){
+    this.currentSessionView={week,session};
+    State.current={week,session};
+    State.save();
+
+    const wd=PROGRAMME[week-1];
+    const sess=wd.sessions[session-1];
+    const log=State.getLog(week,session);
+
+    document.getElementById('sess-week-label').textContent=`${PHASE_LABELS[wd.phase]} — Week ${week}`;
+    document.getElementById('sess-title').textContent=`Session ${session}: ${SESSION_FOCUS[sess.focus]}`;
+
+    // Ensure log has exercise entries
+    if(!log.exercises.length){
+      log.exercises=sess.exercises.filter(e=>!e.isHIIT).map(ex=>{
+        const numSets=Array.isArray(ex.reps)?ex.reps.length:ex.sets;
+        return {sets:Array.from({length:numSets},()=>({w:'',r:'',done:false}))};
+      });
+      State.save();
+    }
+
+    const cont=document.getElementById('session-exercises');
+    let exLogIdx=0;
+    cont.innerHTML='';
+
+    sess.exercises.forEach((ex,exIdx)=>{
+      if(ex.isHIIT){
+        cont.innerHTML+=`<div class="hiit-banner" onclick="App.nav('hiit')">
+          <div><div class="hiit-banner-text">⚡ HIIT Workout</div><div class="hiit-banner-sub">Tap to choose your session</div></div>
+          <div style="font-size:24px">→</div>
+        </div>`;
+        return;
+      }
+      const exLog=log.exercises[exLogIdx]||{sets:[]};
+      const card=this.buildExCard(ex,exIdx,exLogIdx,week,session,exLog);
+      cont.innerHTML+=card;
+      exLogIdx++;
+    });
+
+    // Complete button
+    const isDone=State.isCompleted(week,session);
+    cont.innerHTML+=`<div class="${isDone?'complete-banner done':'complete-banner'}" id="complete-btn" onclick="App.toggleComplete()">
+      ${isDone?'✓ Session Completed — Tap to Undo':'Mark Session Complete ✓'}
+    </div>`;
+
+    // Add event listeners after render
+    setTimeout(()=>this.attachSessionListeners(),0);
+
+    this.nav('session');
+  },
+
+  buildExCard(ex,exIdx,exLogIdx,week,session,exLog){
+    const restLabel=ex.rest?`${ex.rest>=60?ex.rest/60+'min':`${ex.rest}s`} rest`:'';
+    const isSets=Array.isArray(ex.reps);
+    const numSets=isSets?ex.reps.length:ex.sets;
+
+    let pctBadge='';
+    if(ex.percent&&ex.percentOf){
+      const w=State.calcWeight(ex.percent,ex.percentOf);
+      pctBadge=`<div class="ex-pct">${ex.percent}%${w?` = ${State.formatWeight(w)}`:''}`;
+      if(ex.percent<=60) pctBadge+='</div>';
+      else pctBadge+=`</div>`;
+    }
+
+    let targetLabel='';
+    if(ex.reps==='max-test') targetLabel='TEST MAX';
+    else if(ex.reps==='max') targetLabel='Max reps';
+    else if(ex.reps==='max-time') targetLabel='Max time';
+    else if(ex.reps==='30s') targetLabel='30s holds';
+    else if(isSets) targetLabel=ex.reps.join(' / ')+' reps';
+    else targetLabel=`${ex.sets}×${ex.reps}`;
+
+    let metaLine=`${targetLabel}`;
+    if(ex.isEachLeg) metaLine+=' each leg';
+    if(ex.isEachArm) metaLine+=' each arm';
+    if(ex.addWeight) metaLine+=' (add weight)';
+
+    // Build set rows
+    let setRows='';
+    if(ex.logType!=='t'){
+      for(let i=0;i<numSets;i++){
+        const setData=exLog.sets[i]||{w:'',r:'',done:false};
+        let targetReps=isSets?ex.reps[i]:ex.reps;
+        if(targetReps==='max'||targetReps==='max-test') targetReps='?';
+
+        // Special grip labels for triple grip DL
+        let gripLabel='';
+        if(ex.grips&&i<3){
+          const gLabels=['Snatch ×'+ex.grips[0],'Medium ×'+ex.grips[1],'Clean ×'+ex.grips[2]];
+          gripLabel=`<span class="grip-badge">${gLabels[i]}</span>`;
+        }
+        if(ex.specialSets&&i<ex.specialSets.length){
+          gripLabel=`<span class="grip-badge">${ex.specialSets[i]}</span>`;
+        }
+
+        // Weight input for 'wr', reps only for 'r'
+        let inputs='';
+        if(ex.logType==='wr'){
+          let calcHint='';
+          if(ex.percent&&ex.percentOf){
+            const w=State.calcWeight(ex.percent,ex.percentOf);
+            if(w) calcHint=`<div class="calc-weight">${State.formatWeight(w)}</div>`;
+          }
+          inputs=`<td><div>${calcHint}<input type="number" class="num-input" placeholder="kg" inputmode="decimal"
+            data-type="w" data-ex="${exLogIdx}" data-set="${i}" value="${setData.w||''}" step="0.5"></div></td>
+            <td><input type="number" class="num-input" placeholder="${targetReps}" inputmode="numeric"
+            data-type="r" data-ex="${exLogIdx}" data-set="${i}" value="${setData.r||''}"></td>`;
+        } else {
+          inputs=`<td colspan="2"><input type="number" class="num-input" style="width:100%" placeholder="${targetReps}" inputmode="numeric"
+            data-type="r" data-ex="${exLogIdx}" data-set="${i}" value="${setData.r||''}"></td>`;
+        }
+
+        setRows+=`<tr>
+          <td class="set-num">${i+1}</td>
+          <td class="set-target" style="font-size:11px">${gripLabel||targetReps}</td>
+          ${inputs}
+          <td><button class="set-done-btn ${setData.done?'done':''}" data-ex="${exLogIdx}" data-set="${i}" onclick="App.toggleSetDone(${exLogIdx},${i})">✓</button></td>
+        </tr>`;
+      }
+    } else {
+      // Timed exercise
+      for(let i=0;i<numSets;i++){
+        const setData=exLog.sets[i]||{w:'',r:'',done:false};
+        setRows+=`<tr>
+          <td class="set-num">${i+1}</td>
+          <td class="set-target" style="font-size:11px">Hold</td>
+          <td colspan="2"><input type="text" class="num-input" style="width:100%" placeholder="e.g. 45s" inputmode="text"
+            data-type="r" data-ex="${exLogIdx}" data-set="${i}" value="${setData.r||''}"></td>
+          <td><button class="set-done-btn ${setData.done?'done':''}" data-ex="${exLogIdx}" data-set="${i}" onclick="App.toggleSetDone(${exLogIdx},${i})">✓</button></td>
+        </tr>`;
+      }
+    }
+
+    const colHeaders=ex.logType==='wr'?
+      '<th>SET</th><th>TARGET</th><th>WEIGHT</th><th>REPS</th><th></th>':
+      '<th>SET</th><th>TARGET</th><th colspan="2">LOGGED</th><th></th>';
+
+    return `<div class="ex-card" id="ex-card-${exLogIdx}">
+      <div class="ex-header" onclick="App.toggleExCard(${exLogIdx})">
+        <div>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-meta">${metaLine}</div>
+        </div>
+        ${pctBadge}
+      </div>
+      <div class="ex-body" id="ex-body-${exLogIdx}">
+        ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
+        ${restLabel?`<div class="rest-badge" onclick="App.openTimer(${ex.rest})">⏱ ${restLabel}</div>`:''}
+        <table class="log-table">
+          <tr>${colHeaders}</tr>
+          ${setRows}
+        </table>
+      </div>
+    </div>`;
+  },
+
+  attachSessionListeners(){
+    // Input change handlers
+    document.querySelectorAll('.num-input[data-ex]').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const {week,session}=this.currentSessionView;
+        const log=State.getLog(week,session);
+        const ex=parseInt(inp.dataset.ex);
+        const set=parseInt(inp.dataset.set);
+        const type=inp.dataset.type;
+        if(!log.exercises[ex]) return;
+        if(!log.exercises[ex].sets[set]) log.exercises[ex].sets[set]={w:'',r:'',done:false};
+        log.exercises[ex].sets[set][type]=inp.value;
+        State.save();
+      });
+    });
+  },
+
+  toggleExCard(exIdx){
+    const body=document.getElementById(`ex-body-${exIdx}`);
+    if(body) body.style.display=body.style.display==='none'?'':'none';
+  },
+
+  toggleSetDone(exIdx,setIdx){
+    const {week,session}=this.currentSessionView;
+    const log=State.getLog(week,session);
+    if(!log.exercises[exIdx]) return;
+    if(!log.exercises[exIdx].sets[setIdx]) log.exercises[exIdx].sets[setIdx]={w:'',r:'',done:false};
+    const s=log.exercises[exIdx].sets[setIdx];
+    s.done=!s.done;
+    State.save();
+    const btn=document.querySelector(`.set-done-btn[data-ex="${exIdx}"][data-set="${setIdx}"]`);
+    if(btn){btn.classList.toggle('done',s.done);}
+  },
+
+  toggleComplete(){
+    const {week,session}=this.currentSessionView;
+    const log=State.getLog(week,session);
+    log.completed=!log.completed;
+    log.date=log.completed?new Date().toISOString().split('T')[0]:null;
+    State.save();
+    const btn=document.getElementById('complete-btn');
+    if(btn){
+      btn.textContent=log.completed?'✓ Session Completed — Tap to Undo':'Mark Session Complete ✓';
+      btn.classList.toggle('done',log.completed);
+    }
+    if(log.completed){
+      this.toast('Session complete! 💪');
+      this.updateHeader();
+    }
+  },
+
+  backFromSession(){
+    const prevTab=this.currentTab==='session'?'programme':'home';
+    this.nav('programme');
+    setTimeout(()=>this.selectWeek(this.currentSessionView.week),50);
+  },
+
+  // ─── HIIT ─────────────────────────────────
+  renderHiit(){
+    const cont=document.getElementById('hiit-cards');
+    cont.innerHTML=HIIT_WORKOUTS.map(h=>`
+      <div class="hiit-card">
+        <div class="hiit-header" onclick="App.toggleHiit('${h.id}')">
+          <div style="flex:1">
+            <div class="hiit-title">${h.icon} ${h.title}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--muted)">${h.duration}</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 8px;background:var(--bg4);border-radius:6px;color:var(--gold)">${h.equipment}</span>
+              ${h.avoidAfter.length?`<span style="font-size:10px;font-weight:700;padding:2px 8px;background:rgba(230,57,70,.15);border-radius:6px;color:var(--red)">Avoid after ${h.avoidAfter.join('/')}</span>`:''}
+            </div>
+          </div>
+          <div style="color:var(--muted);font-size:18px;margin-left:10px" id="hiit-arrow-${h.id}">▼</div>
+        </div>
+        <div class="hiit-body" id="hiit-body-${h.id}">
+          ${h.steps.map(step=>{
+            if(step.isHeader) return `<div style="font-size:12px;font-weight:800;color:var(--gold);margin:10px 0 6px">${step.label}</div>`;
+            if(step.isNote) return `<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--bg3);border-radius:8px;margin-top:8px">${step.label}</div>`;
+            return `<div class="hiit-step">
+              <div class="step-num">${step.num}</div>
+              <div class="step-text"><strong>${step.name}</strong><br><span style="color:var(--muted)">${step.detail}</span></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`).join('');
+  },
+
+  toggleHiit(id){
+    const body=document.getElementById(`hiit-body-${id}`);
+    const arrow=document.getElementById(`hiit-arrow-${id}`);
+    if(body){body.classList.toggle('open');}
+    if(arrow){arrow.textContent=body.classList.contains('open')?'▲':'▼';}
+  },
+
+  // ─── SETTINGS ─────────────────────────────
+  renderSettings(){
+    document.getElementById('max-squat').value=State.maxes.squat||'';
+    document.getElementById('max-deadlift').value=State.maxes.deadlift||'';
+    document.getElementById('max-bench').value=State.maxes.bench||'';
+    document.getElementById('max-military').value=State.maxes.military||'';
+    document.getElementById('unit-kg').classList.toggle('active',State.unit==='kg');
+    document.getElementById('unit-lbs').classList.toggle('active',State.unit==='lbs');
+    document.getElementById('sq-sub').textContent=`Used for box squats & leg work (enter in ${State.unit})`;
+  },
+
+  saveMaxes(){
+    State.maxes={
+      squat:parseFloat(document.getElementById('max-squat').value)||0,
+      deadlift:parseFloat(document.getElementById('max-deadlift').value)||0,
+      bench:parseFloat(document.getElementById('max-bench').value)||0,
+      military:parseFloat(document.getElementById('max-military').value)||0
+    };
+    State.save();
+    this.toast('Maxes saved ✓');
+  },
+
+  setUnit(u){
+    State.unit=u;
+    State.save();
+    this.renderSettings();
+  },
+
+  resetProgress(){
+    if(!confirm('Reset all logged sets, weights and completed sessions? Your maxes will be kept.')) return;
+    State.logs={};
+    State.current={week:1,session:1};
+    State.save();
+    this.renderHome();
+    this.toast('Progress reset');
+  },
+
+  // ─── REST TIMER ───────────────────────────
+  openTimer(seconds=120){
+    this.stopTimer();
+    this.timerRemaining=seconds;
+    this.timerRunning=false;
+    document.getElementById('timer-modal').classList.remove('hidden');
+    document.getElementById('timer-start-btn').textContent='Start';
+    this.updateTimerDisplay();
+  },
+
+  closeTimer(){
+    this.stopTimer();
+    document.getElementById('timer-modal').classList.add('hidden');
+  },
+
+  closeTimerIfOutside(e){
+    if(e.target===document.getElementById('timer-modal')) this.closeTimer();
+  },
+
+  toggleTimer(){
+    if(this.timerRunning){
+      this.stopTimer();
+      document.getElementById('timer-start-btn').textContent='Resume';
+    } else {
+      this.timerRunning=true;
+      document.getElementById('timer-start-btn').textContent='Pause';
+      this.timerInterval=setInterval(()=>{
+        this.timerRemaining--;
+        this.updateTimerDisplay();
+        if(this.timerRemaining<=0){
+          this.stopTimer();
+          document.getElementById('timer-start-btn').textContent='Done!';
+          try{
+            if(window.navigator.vibrate) window.navigator.vibrate([200,100,200]);
+          }catch(e){}
+          this.toast('Rest complete — get back to it! 💪');
+        }
+      },1000);
+    }
+  },
+
+  stopTimer(){
+    if(this.timerInterval){clearInterval(this.timerInterval);this.timerInterval=null;}
+    this.timerRunning=false;
+  },
+
+  addTime(s){
+    this.timerRemaining=Math.max(0,this.timerRemaining+s);
+    this.updateTimerDisplay();
+  },
+
+  updateTimerDisplay(){
+    const m=Math.floor(Math.abs(this.timerRemaining)/60);
+    const s=Math.abs(this.timerRemaining)%60;
+    document.getElementById('timer-num').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  },
+
+  // ─── TOAST ────────────────────────────────
+  toast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2500);
+  }
+};
+
+// ─── BOOT ─────────────────────────────────────
+App.init();
+</script>
+</body>
+</html>
