@@ -152,6 +152,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-state svg{margin-bottom:12px;opacity:.4}
 .empty-state p{font-size:14px}
+/* Info button */
+.info-btn{background:none;border:1.5px solid var(--border);border-radius:50%;width:24px;height:24px;font-size:13px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1;padding:0;margin-left:6px;vertical-align:middle}
+.info-btn:active{background:var(--blue);border-color:var(--blue);color:#fff}
+/* Info modal content */
+.info-img-wrap{border-radius:12px;overflow:hidden;margin-bottom:16px;background:var(--bg3);min-height:60px;display:flex;align-items:center;justify-content:center}
+.info-img-wrap img{width:100%;display:block;border-radius:12px}
+.info-img-loading{font-size:12px;color:var(--muted);padding:16px}
+.info-muscles{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+.info-desc{font-size:13px;line-height:1.75;color:var(--text)}
+.info-desc b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -315,6 +325,22 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 </div>
 
 <!-- REST TIMER MODAL -->
+<!-- EXERCISE INFO MODAL -->
+<div class="modal-overlay hidden" id="info-modal" onclick="App.closeInfoIfOutside(event)">
+  <div class="modal" style="max-height:85vh">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px">
+      <div class="modal-title" id="info-modal-title" style="margin:0;font-size:17px;line-height:1.3"></div>
+      <button onclick="App.closeInfo()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    <div class="info-img-wrap" id="info-img-wrap">
+      <div class="info-img-loading" id="info-img-loading">Loading image…</div>
+    </div>
+    <div class="info-muscles" id="info-modal-muscles"></div>
+    <div class="info-desc" id="info-modal-desc"></div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="timer-modal" onclick="App.closeTimerIfOutside(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -698,6 +724,144 @@ const HIIT_WORKOUTS = [
 ];
 
 // ═══════════════════════════════════════════════
+// EXERCISE INFO (descriptions + wger search terms)
+// ═══════════════════════════════════════════════
+const EXERCISE_INFO = {
+  'Box Squats':{
+    muscles:'Quads • Glutes • Hamstrings • Core',wgerSearch:'squat',
+    desc:`<b>Setup:</b> Set the box height so your thighs reach parallel when you sit. Bar sits across your upper traps. Feet shoulder-width, toes slightly out.<br><br><b>Execution:</b> Brace your core, push your knees out and sit back onto the box — light touch only, stay completely tight. Drive through your heels to stand, squeezing glutes hard at the top.<br><br><b>Why box?</b> The box removes the stretch reflex and trains you from a dead stop, building true strength at the bottom position.<br><br><b>Key cues:</b> Chest up throughout • Bar stays over mid-foot • Stay tight on the box — don't relax into it • Knees track over toes`
+  },
+  'Triple Grip Deadlifts':{
+    muscles:'Hamstrings • Glutes • Lower back • Lats • Traps',wgerSearch:'deadlift',
+    desc:`<b>Three grips in one set — Snatch (wide) → Medium → Clean (narrow).</b> Each grip taxes slightly different muscles and builds comprehensive pulling strength across the whole back.<br><br><b>Setup for all grips:</b> Bar over mid-foot, back flat, lats engaged before the pull. Take a big breath into your belly and brace hard.<br><br><b>Execution:</b> Push the floor away — hips and shoulders rise at the same rate. Bar stays against your legs. Drive hips through at the top; lock out with glutes, not by hyperextending.<br><br><b>Key cues:</b> "Chest up" keeps your back flat • Drag the bar up your shins • Elbows stay locked straight • Reset your brace between grips`
+  },
+  'Box Step Ups':{
+    muscles:'Quads • Glutes • Hip flexors • Unilateral balance',wgerSearch:'step-up',
+    desc:`<b>Setup:</b> Box height so your knee is at 90° when your foot is planted on top. Stand directly in front of the box.<br><br><b>Execution:</b> Place one foot fully on the box. Drive through that heel to stand — don't push off the trailing foot on the floor (that's cheating). Bring the trailing leg up, stand tall, then step back down with control.<br><br><b>Key cues:</b> All the work must come from the elevated leg • Stay upright — don't hunch forward • Lower slowly; don't drop down<br><br><b>Why?</b> Excellent unilateral exercise that exposes and fixes left-right strength imbalances.`
+  },
+  'Reverse Lunges':{
+    muscles:'Quads • Glutes • Hamstrings • Core stability',wgerSearch:'lunge',
+    desc:`<b>Why reverse?</b> Stepping back instead of forward puts less shear force on the front knee and is much easier to control — better for joint health at high volumes.<br><br><b>Execution:</b> Stand tall, step one foot back, lower the back knee toward the floor. Front shin stays vertical, front heel stays flat on the floor. Drive through the front heel to return to standing.<br><br><b>Key cues:</b> Take your time — slow and controlled every rep (as prescribed!) • Torso stays upright • 90° at both knees at the bottom • Don't let the front knee cave inward`
+  },
+  'Leg Extensions':{
+    muscles:'Quadriceps — isolation',wgerSearch:'leg extension',
+    desc:`<b>Setup:</b> Sit in the machine with the pad just above your ankles, knees at the edge of the seat. Back flat against the pad throughout.<br><br><b>Execution:</b> Extend your legs to full lockout, squeeze the quads hard at the top and <b>hold for 2 seconds</b> — this is prescribed for a reason. Lower slowly under control; resist the weight on the way down.<br><br><b>Key cues:</b> The 2-second squeeze is the stimulus — don't skip it • Don't let the weight crash down • Pointing toes slightly inward recruits more of the quad<br><br><b>Role:</b> Pure isolation finisher after the heavy compounds. Drives quad hypertrophy.`
+  },
+  'Military Press':{
+    muscles:'Anterior & medial deltoids • Triceps • Upper traps • Serratus anterior',wgerSearch:'overhead press',
+    desc:`<b>Setup:</b> Bar rests on upper chest, hands just outside shoulders, elbows slightly in front of the bar. Squeeze your glutes and brace your core — this keeps your lower back from arching dangerously.<br><br><b>Execution:</b> Press the bar straight overhead, moving your head slightly back so the bar clears, then immediately move back under it. Lock out arms fully at the top — every rep.<br><br><b>Full range every rep:</b> Start from chest, reach full lockout. No partial reps.<br><br><b>Key cues:</b> Glutes tight throughout • Bar path is vertical, not forward in an arc • "Push your head through" at the top to fully engage the traps`
+  },
+  'Incline DB Press':{
+    muscles:'Upper pectorals • Anterior deltoid • Triceps',wgerSearch:'incline dumbbell press',
+    desc:`<b>Setup:</b> Bench at 45°. Hold dumbbells at chest level, elbows at roughly 60° from your torso (not fully flared). Feet flat, back into the bench, shoulder blades pinched together and pulled down.<br><br><b>Execution:</b> Press the dumbbells up and very slightly together. Lower under control — elbows reach just below the bench level at the bottom for a full stretch.<br><br><b>Key cues:</b> Keep your shoulder blades retracted and depressed the whole time — this protects your shoulders and improves recruitment • Don't flare elbows to 90°; that's a rotator cuff injury waiting to happen<br><br><b>Why incline?</b> Targets the clavicular (upper) pec head that flat bench under-develops.`
+  },
+  'Flat Bench Press':{
+    muscles:'Pectorals • Anterior deltoid • Triceps',wgerSearch:'bench press',
+    desc:`<b>Setup:</b> Eyes under the bar. Grip slightly wider than shoulder-width. Create a slight arch, feet flat on the floor, shoulder blades squeezed together and pressed into the bench.<br><br><b>Execution (2-second eccentric):</b> Unrack and lower the bar to your lower chest over exactly 2 seconds — controlled, not a drop. Touch lightly, then press explosively back to lockout.<br><br><b>Key cues:</b> Bar touches lower chest, not your neck or nipple line • Wrists stay straight • Drive your feet into the floor for leg drive • "Bend the bar" with your hands to activate lats and protect shoulders<br><br><b>Why 2-second lower?</b> Increases time under tension and builds the hardest part of the lift — the bottom.`
+  },
+  'Z Press':{
+    muscles:'Shoulders • Triceps • Core (heavily) • Hip flexors',wgerSearch:'overhead press',
+    desc:`<b>What is it?</b> An overhead press performed seated on the floor with legs extended straight in front of you. No back support means your core and hip flexors must work overtime to stay upright.<br><br><b>Setup:</b> Sit on the floor, legs straight, back completely vertical. Hold KB or DB at shoulder height. Phase 1 uses alternating arms; Phase 2 both arms together.<br><br><b>Execution:</b> Press overhead to full lockout. Lower under control. The seated position eliminates any leg drive — pure shoulder and tricep work.<br><br><b>Key cues:</b> Don't lean back — that defeats the purpose entirely • Start lighter than you think; it gets hard very fast • Sit tall throughout the set`
+  },
+  'Planks':{
+    muscles:'Transverse abdominis • Obliques • Shoulder stabilisers • Glutes',wgerSearch:'plank',
+    desc:`<b>Front plank:</b> Forearms on floor, elbows under shoulders. Body in a dead straight line — head, back, hips, heels. Squeeze everything: abs, glutes, quads. Don't let hips sag or pike up.<br><br><b>Side plank:</b> One forearm on ground, body stacked in a straight line. Don't let the hip drop. Stack your feet or stagger them for balance.<br><br><b>Key cues:</b> Don't hold your breath — breathe steadily • Imagine "pulling" your elbows toward your toes to fire the core fully • If 30s is impossible, max time each set and build up<br><br><b>Progression:</b> Aim to add 5 seconds each week.`
+  },
+  'Pendlay Rows':{
+    muscles:'Lats • Rhomboids • Mid traps • Rear delts • Biceps',wgerSearch:'barbell row',
+    desc:`<b>What makes it different?</b> The bar returns to the floor dead between every rep. This eliminates momentum completely and forces a true explosive horizontal pull from a dead stop.<br><br><b>Setup:</b> Hinge to roughly 90° (torso nearly parallel to the floor). Bar over mid-foot, overhand grip just outside hips, back flat.<br><br><b>Execution:</b> From a dead stop, explosively row the bar to your lower chest. Set it back on the floor. Fully reset your brace before each rep.<br><br><b>Key cues:</b> "Honest reps" — don't raise your torso to help the bar up • Pull elbows past your back, not just to your sides • The explosive pull is intentional — it's not a slow grind`
+  },
+  'See Saw Rows':{
+    muscles:'Lats • Rhomboids • Rear delts • Biceps — unilateral',wgerSearch:'dumbbell row',
+    desc:`<b>What is it?</b> Alternating single-arm dumbbell or KB rows done continuously — as one arm pulls up the other lowers, creating a smooth see-saw rhythm.<br><br><b>Setup:</b> Hinge forward to 45–90°. Hold a weight in each hand, arms hanging. Brace the core hard to resist rotation.<br><br><b>Execution:</b> Row one arm to your hip/lower rib, squeezing the lat. As it lowers, begin pulling the other side. Nice and controlled rhythm — don't rush.<br><br><b>Key cues:</b> Lead with the elbow, not the hand • Minimal torso rotation — core stays locked • Full stretch at the bottom each rep`
+  },
+  'Ring Pull Ups':{
+    muscles:'Lats • Biceps • Rear delts • Rhomboids • Core',wgerSearch:'pull-up',
+    desc:`<b>Why rings?</b> Rings let your wrists rotate naturally through the movement, reducing shoulder stress and increasing lat activation compared to a fixed bar.<br><br><b>Execution:</b> Start from a dead hang — full arm extension. Pull your chest toward the rings, driving your elbows down and back. At the top, try to rotate the rings outward (externally rotate). Lower with full control.<br><br><b>Key cues:</b> Start from a TRUE dead hang every rep — no partial range • Squeeze shoulder blades together at the top • Cross your feet to reduce swinging<br><br><b>Push to failure:</b> The last rep should be a genuine struggle. If you can't do pull-ups, use a band looped over the rings.`
+  },
+  'Active Hangs':{
+    muscles:'Lats • Serratus anterior • Shoulder stabilisers • Grip strength',wgerSearch:'dead hang',
+    desc:`<b>Not a passive hang</b> — this is active. You hang from the bar with arms fully extended, then engage your lats to pull your shoulders away from your ears (scapular depression) while keeping arms completely straight.<br><br><b>Execution:</b> Jump to a dead hang. Then "pack" your shoulders — pull your shoulder blades DOWN without bending your elbows. The movement is small but intense. Hold. Relax. Repeat.<br><br><b>Key cues:</b> Arms stay dead straight — this is not the start of a pull-up • Think "pull shoulders away from your ears" • Finish each set when form breaks<br><br><b>Why?</b> Builds the scapular stability and shoulder health that heavy pressing destroys. Also decompresses the spine.`
+  },
+  'Single Leg RDL':{
+    muscles:'Hamstrings • Glutes • Lower back • Balance & proprioception',wgerSearch:'romanian deadlift',
+    desc:`<b>Setup:</b> Hold a KB or DB in each hand at your sides. Stand on one leg with a slight bend in that knee.<br><br><b>Execution:</b> Hinge at the hip, sending your free leg behind you as a counterweight while your torso lowers toward the floor. Go until you feel a deep hamstring stretch. Drive through the working heel to return upright — squeeze the glute hard to stand tall.<br><br><b>Key cues:</b> Hip hinge — not a squat • Keep your working hip, shoulder, and free foot in a straight line when viewed from the side • Don't let your pelvis rotate open — keep both hips level<br><br><b>Balance tip:</b> Fix your eyes on a point 2–3m in front of you on the floor.`
+  },
+  'Single Leg Glute Bridge':{
+    muscles:'Glutes (unilateral) • Hamstrings • Core anti-rotation',wgerSearch:'glute bridge',
+    desc:`<b>Setup:</b> Lie on your back, one foot flat on the floor with knee bent. The other leg is extended at 45° or pulled toward your chest.<br><br><b>Execution:</b> Drive through the grounded heel to push your hips to the ceiling. <b>Squeeze the glute hard at the top and hold for 2 seconds.</b> Lower slowly under control.<br><br><b>Key cues:</b> The 2-second squeeze is everything — if you don't feel it in the glute, you're using hamstrings too much • Drive through the heel, not the toes • Keep both hips level — don't let the non-working side drop<br><br><b>Why unilateral?</b> Forces each glute to work independently, revealing and fixing imbalances.`
+  },
+  'Hyper Extension':{
+    muscles:'Spinal erectors • Glutes • Hamstrings',wgerSearch:'back extension',
+    desc:`<b>Setup:</b> On a hyperextension bench or GHD machine. Hips at the pad, feet hooked under the rollers. Hold a 10kg plate on your chest (Weeks 3+) or arms crossed.<br><br><b>Execution (as prescribed):</b> Hold at full extension for 30 seconds first, then perform 20 reps. For reps: lower your torso toward the floor, then extend back to horizontal — don't go past parallel or you hyperextend the lumbar.<br><br><b>Key cues:</b> Squeeze glutes at the top — not just arching the lower back • Smooth controlled motion, no jerking • When holding the plate, keep it tight to your chest<br><br><b>Why it matters:</b> Essential lower back strengthening exercise and critical for deadlift longevity.`
+  },
+  'Sumo Deadlift':{
+    muscles:'Adductors • Glutes • Quads • Lower back • Traps',wgerSearch:'sumo deadlift',
+    desc:`<b>Setup:</b> Very wide stance (1.5–2× shoulder width), toes pointed out 30–45°. Hips sink low, chest up, grip inside the legs. KB between feet or barbell.<br><br><b>Execution:</b> Brace hard. Push the floor apart with your feet ("spread the floor"). The bar travels straight up. Drive hips through to lockout — squeeze glutes.<br><br><b>Key cues:</b> "Hips down, chest up" at the bottom — looks more like a squat than conventional deadlift • Knees track over toes throughout the pull • Lock your back before you pull; never rip off the floor<br><br><b>KB version:</b> The KB naturally centres the load — great for learning the hip pattern.`
+  },
+  'Crunches':{
+    muscles:'Rectus abdominis • Obliques',wgerSearch:'crunch',
+    desc:`<b>Setup:</b> Lie on your back, knees bent, feet flat. Hands lightly behind your head or crossed on your chest. Don't pull on your neck.<br><br><b>Execution:</b> Curl your shoulders and upper back off the floor — you're pulling your rib cage toward your pelvis. Exhale fully at the top and squeeze. Lower with control.<br><br><b>Key cues:</b> The movement is small — you're not doing a sit-up • Think about shortening the distance between your ribs and your hips • Keep your chin off your chest — imagine holding a tennis ball under it • Every set goes to max reps — the last reps should be a real fight`
+  },
+  '15" Deadlifts':{
+    muscles:'Hamstrings • Glutes • Lower back • Upper traps • Lats',wgerSearch:'rack pull',
+    desc:`<b>What is it?</b> A partial deadlift starting from approximately 15 inches (knee height) — set on blocks, safeties or rack pins. Also called a rack pull.<br><br><b>Why?</b> Overloads the lockout portion of the deadlift and lets you handle heavier loads than a full deadlift, building upper back and hip extension strength specifically.<br><br><b>Execution:</b> Identical technique to a conventional deadlift from this height. Brace, engage lats, drive hips through to a full lockout. Stand completely tall at the top.<br><br><b>Key cues:</b> Don't let the bar drift away from your body • Full lockout every rep • Same back position and bracing as a conventional pull`
+  },
+  'Leg Press':{
+    muscles:'Quads • Glutes • Hamstrings',wgerSearch:'leg press',
+    desc:`<b>Setup:</b> Sit in the machine, feet hip-width on the platform (mid to upper portion). Lower back flat against the pad. Knees unlocked at the top — don't fully lock out.<br><br><b>Phase 2 — HEAVY 3×5:</b> Load it up significantly. Lower the platform until your knees reach 90° or deeper, then drive explosively back up.<br><br><b>Phase 3 — EXPLOSIVE 8×3:</b> Use ~50% of your max. Slow and controlled on the way down, then drive UP as hard and fast as possible. This is power training — maximise speed on the push.<br><br><b>Key cues:</b> Feet flat on the platform — don't let heels lift • No "butt wink" — back stays pressed into the seat • Higher foot placement hits more glutes; lower hits more quads`
+  },
+  'Goblet Reverse Lunges':{
+    muscles:'Quads • Glutes • Core anti-rotation',wgerSearch:'lunge',
+    desc:`<b>What is it?</b> A reverse lunge with a KB or DB held at your chest (goblet position). The front-loaded weight dramatically increases core and upper back demand.<br><br><b>Execution:</b> Hold the weight at your chest with both hands. Step one foot back, lower the rear knee toward the floor. Front shin stays vertical. Drive through the front heel to return to standing.<br><br><b>Key cues:</b> The goblet position forces you to stay upright — let it do that job • Don't let the weight pull you forward • 90° at both knees at the bottom • Controlled tempo — this is a strength exercise not a conditioning drill`
+  },
+  'Weighted Glute Bridge':{
+    muscles:'Glutes • Hamstrings • Core',wgerSearch:'glute bridge',
+    desc:`<b>Setup:</b> Lie on your back, knees bent, feet flat and hip-width. Barbell or DB across your hip crease — use a pad or folded towel to protect your hips.<br><br><b>Execution:</b> Drive through both heels, thrust hips up until your body forms a straight line from shoulders to knees. <b>Squeeze glutes hard at the top for 2 seconds.</b> Lower slowly.<br><br><b>Key cues:</b> The squeeze at the top is the whole point — don't rush it • Drive through heels, not toes • Chin tucked slightly — don't crank your neck back<br><br><b>Phase 2 context:</b> Go as heavy as possible while maintaining the hold. The glutes are the strongest muscle in your body — challenge them accordingly.`
+  },
+  'Barbell RDL':{
+    muscles:'Hamstrings • Glutes • Lower back • Lats',wgerSearch:'romanian deadlift',
+    desc:`<b>Setup:</b> Stand holding a barbell at hip height, overhand grip. Feet hip-width. Maintain a slight bend in the knees throughout — this is NOT a stiff-leg deadlift.<br><br><b>Execution:</b> Hinge at the hips, pushing them back as the bar travels down your legs. Lower until you feel a strong hamstring stretch (typically just below the knee). Drive hips forward to return — squeeze glutes at lockout.<br><br><b>Key cues:</b> Bar stays in contact with your legs the entire way down • "Push your hips toward the wall behind you" to initiate the hinge • Back stays flat — no rounding • Don't go lower than your flexibility allows<br><br><b>Common mistake:</b> Squatting down instead of hinging. The knee angle barely changes throughout.`
+  },
+  'Speed Deadlifts':{
+    muscles:'Full posterior chain — CNS power training',wgerSearch:'deadlift',
+    desc:`<b>What is it?</b> Deadlifts at 50–54% of your max with all focus on bar speed. Based on Westside Barbell's dynamic effort method.<br><br><b>Why?</b> Training your nervous system to recruit muscle fibres faster. The intent to move the bar as explosively as possible is the training stimulus — the light weight is intentional.<br><br><b>Execution:</b> Identical technique to your regular deadlift. Set up perfectly on every rep, then explode the bar off the floor with maximum aggression. Reset fully between reps — no touch and go.<br><br><b>Key cues:</b> The INTENT to be fast is everything — max effort every single rep • Never sacrifice technique for speed • 8×3 with 60s rest; it should feel powerful, not fatiguing`
+  },
+  'Box Jumps':{
+    muscles:'Quads • Glutes • Calves • CNS power output',wgerSearch:'box jump',
+    desc:`<b>Setup:</b> Stand 30–60cm from a sturdy box. Feet hip-width, arms ready to swing.<br><br><b>Execution:</b> Quick quarter-squat dip, swing arms explosively, jump onto the box and land softly with knees bent — absorb through your hips. Stand fully upright on the box, then <b>step back down</b> (never jump down). Reset completely before the next rep.<br><br><b>Key cues:</b> Land softly — absorb the force, don't crash into the box • STEP down, don't jump down; this protects your Achilles • Use the highest box you can safely clear • Explosive hip extension is the training goal<br><br><b>Why full reset between reps?</b> Power training requires CNS recovery. These are not conditioning — they are pure power.`
+  },
+  'Speed Military Press':{
+    muscles:'Shoulders • Triceps — CNS power training',wgerSearch:'overhead press',
+    desc:`<b>What is it?</b> Overhead press at 50–54% of your max, with all focus on maximum bar speed. Dynamic effort training for the press.<br><br><b>Execution:</b> Same setup as your regular military press. Bar starts at chest/clavicle. Press with maximum acceleration — try to drive the bar through the ceiling on every rep.<br><br><b>Key cues:</b> Glutes and core tight throughout — power comes only from shoulders and triceps • Press in a perfectly straight line — no bar drift forward • 8 sets of 3 at 60s rest; every set should look identical and feel fast<br><br><b>Why?</b> Builds rate of force development in the press, which directly translates to heavier max lifts.`
+  },
+  'Speed Bench':{
+    muscles:'Pectorals • Triceps — CNS power training',wgerSearch:'bench press',
+    desc:`<b>What is it?</b> Bench press at 50–54% of your max with complete focus on bar speed. Same principle as speed deadlifts — dynamic effort for the horizontal press.<br><br><b>Execution:</b> Lower the bar with a controlled 1-second descent, touch your chest, then press with absolute maximum speed and force. The bar should feel like it wants to fly off your hands.<br><br><b>Key cues:</b> The intent to press fast IS the training — max effort every single rep • Leg drive stays active throughout • Shoulder blades stay packed into the bench • 8 sets at 60s rest — should feel powerful, not grindy`
+  },
+  'Seated Rows':{
+    muscles:'Lats • Rhomboids • Mid traps • Rear delts • Biceps',wgerSearch:'seated row',
+    desc:`<b>Setup:</b> Sit upright on the cable row machine. Feet on platforms, knees slightly bent, torso perpendicular to the cable — don't lean back. Use a neutral (palms facing) grip if available.<br><br><b>Execution:</b> Row the handle to your lower chest/upper abdomen, pulling elbows past your sides. Squeeze your shoulder blades together hard at the contraction. Return with full control — reach full stretch at the front with shoulder blades pulling apart.<br><br><b>Key cues:</b> Don't lean back to pull — keep torso upright • "Elbows to back pockets" cue to activate the lats • The full stretch at the front is equally important to the contraction`
+  },
+  'KB Swings':{
+    muscles:'Glutes • Hamstrings • Lower back • Core',wgerSearch:'kettlebell swing',
+    desc:`<b>The swing is a HIP HINGE, not a squat.</b> All power comes from the glutes — the arms just connect your hips to the KB.<br><br><b>Execution:</b> Hike the KB back between your legs like a hiking a football, then violently drive your hips forward. The KB floats to shoulder height purely from the hip drive — don't lift it with your arms. Hinge back to receive the KB and immediately repeat.<br><br><b>Key cues:</b> <b>"Squeeze glutes like you're cracking a nut at the top"</b> — that's the cue from the programme • Hips go back, not down — don't squat the swing • Arms stay relaxed; they're a link, not a lever • Snap the hips, don't grind`
+  },
+  'Good Mornings':{
+    muscles:'Hamstrings • Glutes • Spinal erectors',wgerSearch:'good morning exercise',
+    desc:`<b>What is it?</b> A barbell hip hinge with the bar on your back. Phase 3 version is explosive — 8×3 with light weight and a focus on power.<br><br><b>Setup:</b> Bar on upper traps as in a squat. Feet hip-width, slight knee bend. Core braced.<br><br><b>Execution:</b> Hinge at the hips, pushing them backward while your torso lowers toward parallel with the floor. Keep back completely flat. Drive hips forward explosively to return — this should be fast and powerful.<br><br><b>Key cues:</b> Light weight, maximum intent — this is power, not strength work • Back stays flat — any rounding is dangerous • The knee angle barely changes; this is a hinge not a squat • Add bands/chains if available for accommodating resistance`
+  },
+  'Squat':{
+    muscles:'Quads • Glutes • Hamstrings • Core • Upper back',wgerSearch:'squat',
+    desc:`<b>This is your Week 12 max test.</b> 11 weeks of training has built up to this.<br><br><b>Warm-up protocol:</b> Bar ×10 → 50% ×5 → 65% ×3 → 75% ×2 → 85% ×1 → 90% ×1 → Attempt your max.<br><br><b>Key cues for the attempt:</b> Big breath and full brace before unracking • Tight 3-step walk-out • Hit depth — hip crease must go below the top of the knee • Drive out of the hole with everything you have<br><br><b>Mindset:</b> You've built the foundation. Trust your training, own the bar, attack the lift.`
+  },
+  'Deadlift':{
+    muscles:'Full body — hamstrings, glutes, back, traps, lats, everything',wgerSearch:'deadlift',
+    desc:`<b>This is your Week 12 max test.</b> The king of all lifts. You've earned this moment.<br><br><b>Warm-up protocol:</b> Bar ×5 → 50% ×5 → 65% ×3 → 75% ×2 → 85% ×1 → 90% ×1 → Attempt your max.<br><br><b>Key cues for the attempt:</b> Set up with precision — bar over mid-foot, perfect hip position • Pull the slack out of the bar before you pull • Once it breaks the floor, it does not stop until lockout<br><br><b>Mindset:</b> Aggressive setup, patient execution. Own every inch of the lift.`
+  }
+};
+
+// ═══════════════════════════════════════════════
 // STATE & STORAGE
 // ═══════════════════════════════════════════════
 const TOTAL_SESSIONS = PROGRAMME.reduce((a,w)=>a+w.sessions.length,0);
@@ -1018,10 +1182,14 @@ const App = {
       '<th>SET</th><th>TARGET</th><th>WEIGHT</th><th>REPS</th><th></th>':
       '<th>SET</th><th>TARGET</th><th colspan="2">LOGGED</th><th></th>';
 
+    const safeExName=ex.name.replace(/'/g,"\\'");
     return `<div class="ex-card" id="ex-card-${exLogIdx}">
       <div class="ex-header" onclick="App.toggleExCard(${exLogIdx})">
-        <div>
-          <div class="ex-name">${ex.name}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center">
+            <div class="ex-name" style="flex:1;min-width:0">${ex.name}</div>
+            <button class="info-btn" onclick="event.stopPropagation();App.openExInfo('${safeExName}')" title="Exercise info">ⓘ</button>
+          </div>
           <div class="ex-meta">${metaLine}</div>
         </div>
         ${pctBadge}
@@ -1165,6 +1333,75 @@ const App = {
     State.save();
     this.renderHome();
     this.toast('Progress reset');
+  },
+
+  // ─── EXERCISE INFO ────────────────────────
+  openExInfo(name){
+    const info=EXERCISE_INFO[name];
+    const modal=document.getElementById('info-modal');
+    document.getElementById('info-modal-title').textContent=name;
+    document.getElementById('info-modal-muscles').textContent=info?info.muscles:'';
+    document.getElementById('info-modal-desc').innerHTML=info
+      ?info.desc
+      :'<span style="color:var(--muted)">See the programme notes for this exercise.</span>';
+    // Reset image area to loading state
+    const wrap=document.getElementById('info-img-wrap');
+    const loading=document.getElementById('info-img-loading');
+    wrap.innerHTML='<div class="info-img-loading" id="info-img-loading">Looking up image…</div>';
+    modal.classList.remove('hidden');
+    // Fetch image in background
+    if(info?.wgerSearch){
+      this.fetchWgerImage(info.wgerSearch).then(url=>{
+        const w=document.getElementById('info-img-wrap');
+        if(!w||modal.classList.contains('hidden')) return;
+        if(url){
+          w.innerHTML=`<img src="${url}" alt="${name}" onerror="this.parentElement.style.display='none'">`;
+        } else {
+          w.style.display='none';
+        }
+      });
+    } else {
+      wrap.style.display='none';
+    }
+  },
+
+  async fetchWgerImage(term){
+    try{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),5000);
+      const res=await fetch(
+        `https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(term)}&language=english&format=json`,
+        {signal:controller.signal}
+      );
+      clearTimeout(timeout);
+      if(!res.ok) return null;
+      const data=await res.json();
+      const sugg=data.suggestions;
+      if(!sugg?.length) return null;
+      // wger search returns base_id for exercise lookup
+      const baseId=sugg[0].data?.base_id??sugg[0].data?.id;
+      if(!baseId) return null;
+      const controller2=new AbortController();
+      const timeout2=setTimeout(()=>controller2.abort(),5000);
+      const imgRes=await fetch(
+        `https://wger.de/api/v2/exerciseimage/?format=json&exercise=${baseId}&is_main=True`,
+        {signal:controller2.signal}
+      );
+      clearTimeout(timeout2);
+      if(!imgRes.ok) return null;
+      const imgData=await imgRes.json();
+      return imgData.results?.[0]?.image??null;
+    }catch(e){
+      return null;
+    }
+  },
+
+  closeInfo(){
+    document.getElementById('info-modal').classList.add('hidden');
+  },
+
+  closeInfoIfOutside(e){
+    if(e.target===document.getElementById('info-modal')) this.closeInfo();
   },
 
   // ─── REST TIMER ───────────────────────────
