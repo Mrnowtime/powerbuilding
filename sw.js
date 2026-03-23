@@ -1,4 +1,4 @@
-const CACHE = 'powerbuilding-v1';
+const CACHE = 'powerbuilding-v2';
 const ASSETS = ['index.html', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', e => {
